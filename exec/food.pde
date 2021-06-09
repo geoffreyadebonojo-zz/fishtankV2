@@ -64,3 +64,9 @@ class Food {
     }
   }
 }
+
+void setupFoods(){
+  for (int i = 0; i<foods.length; i++) {
+    foods[i] = new Food(width, height, random(1,5));
+  }
+}

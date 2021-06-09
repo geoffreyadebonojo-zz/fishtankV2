@@ -6,25 +6,6 @@ Tadpole[] tadpoles = new Tadpole[initialTadpoles];
 Food[] foods =       new Food[initialFoods];
 Swarm swarm;
 
-void setupSwarm() {
-  swarm = new Swarm();
-  for (int i = 0; i <tadpoles.length; i++) {
-    Tadpole tadpole = new Tadpole(
-      random((width/2) -25, 
-      (width/2) +25), 
-      random((height/2) -25, 
-      height/2 +25), tadpoles
-    );
-    swarm.addTadpole(tadpole);
-  }
-}
-
-void setupFoods(){
-  for (int i = 0; i<foods.length; i++) {
-    foods[i] = new Food(width, height, random(1,5));
-  }
-}
-
 void makeFood(){
   for (int i =0; i<foods.length; i++){
     if (foods[i].spoilTimer>0) {
@@ -44,7 +25,6 @@ void makeFood(){
     }
   }
 }
-
 
 void setup() {
   size(1400, 800);

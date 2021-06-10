@@ -1,107 +1,5 @@
-/*1623282422*/
+/*1623283221*/
 
-void keyPressed(){
-  if (key == CODED) {
-    if (keyCode == DOWN) {
-      noLoop();
-    }
-    if (keyCode == UP) {
-      loop();
-    }
-    if (keyCode == LEFT) {
-      frameRate(10);
-    }
-    if (keyCode == RIGHT) {
-      frameRate(20);
-    }
-  }
-}
-
-void mousePressed() {
-  swarm.addTadpole(new Tadpole(mouseX,mouseY,tadpoles));
-}
-class Feeder {
-  float x;
-  float y;
-  PVector position;
-  PVector velocity;
-  PVector acceleration;
-  float angle;
-  float feedRange;
-  float mass;
-  float bodySize;
-  float swingPower;
-  float changeDirection;
-  
-  
-  Feeder(float ix, float iy) {  
-    x = ix;
-    y = iy;
-    position = new PVector (x, y);
-    velocity = new PVector (0, 0);
-    changeDirection = random(5);
-    changeDirection -= random(1);
-    acceleration = new PVector (random(-0.0001, 0.0001), random(-0.0001, 0.0001));
-    angle=0;
-    feedRange=random(200,500);
-    mass=5;
-    bodySize=5;
-    swingPower= 2;
-  }
-
-  void run() {
-    display();
-    update();
-    suckFood();
-  }
-
-  void display() {
-    pushMatrix();
-    translate(position.x, position.y);
-    rotate(angle);
-    noStroke();
-    fill(200, 200, 200, 50);
-    rectMode(CENTER);
-    noStroke();
-    ellipse(0,0,feedRange,feedRange);
-    popMatrix();
-    noStroke();
-  }  
-
-  void update() {
-    position.add(velocity);
-    velocity.add(acceleration);
-    acceleration.mult(1);
-  }
-  
-  void move() {
-   acceleration.add(0,0); 
-  }
-
-  void suckFood() {
-    PVector dir;
-    PVector food;
-    float dist; 
-
-    for (int i=0; i<foods.length; i++) {
-      food = new PVector (foods[i].position.x, foods[i].position.y);
-      dir = PVector.sub (position, food);
-      dist = PVector.dist(food, position);
-      dir.normalize();
-      dir.mult(sqrt(dist)*mass);
-
-
-      if (dist<feedRange/2) {
-        foods[i].acceleration.add(dir);
-        //                    80 is GOOD
-        foods[i].maxSpeed = ((80/dist)+ swingPower)/foods[i].mass;
-      }else {
-      foods[i].maxSpeed = foods[i].initMaxSpeed;
-      }
-    }
-  }
-}
-      
 class Food {
   PVector position;
   PVector velocity;
@@ -174,6 +72,26 @@ void setupFoods(){
     foods[i] = new Food(width, height, random(1,5));
   }
 }
+void keyPressed(){
+  if (key == CODED) {
+    if (keyCode == DOWN) {
+      noLoop();
+    }
+    if (keyCode == UP) {
+      loop();
+    }
+    if (keyCode == LEFT) {
+      frameRate(10);
+    }
+    if (keyCode == RIGHT) {
+      frameRate(20);
+    }
+  }
+}
+
+void mousePressed() {
+  swarm.addTadpole(new Tadpole(mouseX,mouseY,tadpoles));
+}
 class Swarm {
   ArrayList<Tadpole>tadpoles;
 
@@ -214,6 +132,46 @@ void setupSwarm() {
     );
     swarm.addTadpole(tadpole);
   }
+}
+int initialTadpoles = 5;
+int initialFoods =   100;
+int fps =            30;
+PVector gravity =    new PVector (0, 0.6);
+Tadpole[] tadpoles = new Tadpole[initialTadpoles];
+Food[] foods =       new Food[initialFoods];
+Swarm swarm;
+
+void makeFood(){
+  for (int i =0; i<foods.length; i++){
+    if (foods[i].spoilTimer>0) {
+      foods[i].display();
+      foods[i].update();
+      foods[i].applyForce(gravity);
+      foods[i].jitter();
+      foods[i].checkEdges();  
+      foods[i].respawn();
+      foods[i].spoilTimer-=0.001;
+    }
+    
+    if (foods[i].spoilTimer<=0) {
+      foods[i].spoilTimer=20;
+      foods[i].position.x=random(width);
+      foods[i].position.y=random(height);
+    }
+  }
+}
+
+void setup() {
+  size(1400, 800);
+  setupFoods();
+  setupSwarm();
+}
+
+void draw() {
+  frameRate(fps);
+  background(100, 20);
+  makeFood();
+  swarm.run();
 }
 class Tadpole {
 
@@ -568,43 +526,85 @@ class Tadpole {
   }
 
 }
-int initialTadpoles = 5;
-int initialFoods =   100;
-int fps =            30;
-PVector gravity =    new PVector (0, 0.6);
-Tadpole[] tadpoles = new Tadpole[initialTadpoles];
-Food[] foods =       new Food[initialFoods];
-Swarm swarm;
+class Feeder {
+  float x;
+  float y;
+  PVector position;
+  PVector velocity;
+  PVector acceleration;
+  float angle;
+  float feedRange;
+  float mass;
+  float bodySize;
+  float swingPower;
+  float changeDirection;
+  
+  
+  Feeder(float ix, float iy) {  
+    x = ix;
+    y = iy;
+    position = new PVector (x, y);
+    velocity = new PVector (0, 0);
+    changeDirection = random(5);
+    changeDirection -= random(1);
+    acceleration = new PVector (random(-0.0001, 0.0001), random(-0.0001, 0.0001));
+    angle=0;
+    feedRange=random(200,500);
+    mass=5;
+    bodySize=5;
+    swingPower= 2;
+  }
 
-void makeFood(){
-  for (int i =0; i<foods.length; i++){
-    if (foods[i].spoilTimer>0) {
-      foods[i].display();
-      foods[i].update();
-      foods[i].applyForce(gravity);
-      foods[i].jitter();
-      foods[i].checkEdges();  
-      foods[i].respawn();
-      foods[i].spoilTimer-=0.001;
-    }
-    
-    if (foods[i].spoilTimer<=0) {
-      foods[i].spoilTimer=20;
-      foods[i].position.x=random(width);
-      foods[i].position.y=random(height);
+  void run() {
+    display();
+    update();
+    suckFood();
+  }
+
+  void display() {
+    pushMatrix();
+    translate(position.x, position.y);
+    rotate(angle);
+    noStroke();
+    fill(200, 200, 200, 50);
+    rectMode(CENTER);
+    noStroke();
+    ellipse(0,0,feedRange,feedRange);
+    popMatrix();
+    noStroke();
+  }  
+
+  void update() {
+    position.add(velocity);
+    velocity.add(acceleration);
+    acceleration.mult(1);
+  }
+  
+  void move() {
+   acceleration.add(0,0); 
+  }
+
+  void suckFood() {
+    PVector dir;
+    PVector food;
+    float dist; 
+
+    for (int i=0; i<foods.length; i++) {
+      food = new PVector (foods[i].position.x, foods[i].position.y);
+      dir = PVector.sub (position, food);
+      dist = PVector.dist(food, position);
+      dir.normalize();
+      dir.mult(sqrt(dist)*mass);
+
+
+      if (dist<feedRange/2) {
+        foods[i].acceleration.add(dir);
+        //                    80 is GOOD
+        foods[i].maxSpeed = ((80/dist)+ swingPower)/foods[i].mass;
+      }else {
+      foods[i].maxSpeed = foods[i].initMaxSpeed;
+      }
     }
   }
 }
-
-void setup() {
-  size(1400, 800);
-  setupFoods();
-  setupSwarm();
-}
-
-void draw() {
-  frameRate(fps);
-  background(100, 20);
-  makeFood();
-  swarm.run();
-}
+      

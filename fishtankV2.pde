@@ -1,4 +1,4 @@
-/*1623284100*/
+/*1623364170*/
 
 class Food {
   PVector position;
@@ -133,8 +133,8 @@ void setupSwarm() {
     swarm.addTadpole(tadpole);
   }
 }
-int initialTadpoles = 5;
-int initialFoods =   100;
+int initialTadpoles = 1;
+int initialFoods =   1;
 int fps =            30;
 PVector gravity =    new PVector (0, 0.6);
 Tadpole[] tadpoles = new Tadpole[initialTadpoles];
@@ -162,7 +162,7 @@ void makeFood(){
 }
 
 void setup() {
-  size(1400, 800);
+  size(400, 400);
   setupFoods();
   setupSwarm();
 }
@@ -217,99 +217,72 @@ class Tadpole {
     s = random(0.1); //this can be anywhere from 0 to 10       //the lower the better, surivability wise
                     // could pop both out into explore method
 
-    mass=1;
-    bodySize=mass*5;
-    maxSpeed=3;
-    jitterSpeed = 0.1;
-    huntManyRange=100;
-    huntOneRange=30;
-    desiredSep= 80;
-    maxForce= 0.05;
-    foodCount= 0;
-    hunger= 0;
-    maxHunger= 5;
-    linger= 2;
-    accelerationMultiplier=0;
+    mass=                   1;
+    bodySize=               mass*5;
+    maxSpeed=               3;
+    jitterSpeed =           0.1;
+    huntManyRange=          200;
+    huntOneRange=           100;
+    desiredSep=             80;
+    maxForce=               0.05;
+    foodCount=              0;
+    hunger=                 0;
+    maxHunger=              2;
+    linger=                 2;
+    accelerationMultiplier= 0;
   }
 
   //////////ANIMATION METHODS////////////////
   void display() {
-    //if (hunger < maxHunger+linger){
-
     angle= velocity.heading();
-    float b;
-    b= sin(a);
     pushMatrix();
       translate(position.x, position.y);
-      //stroke(0);
-      //fill(0, 90, 165, 200);
-      //textSize(foodCount +7);
-      //textAlign(CENTER);
-      //text(foodCount, 0, foodCount/2);
       rotate(angle);
-      //tail
-      strokeWeight(bodySize/5);
-      stroke(0, 0, 0);
-      line(-bodySize/2, 0, -bodySize/2 -abs((velocity.x + velocity.y)), b*abs((velocity.x+velocity.y))); // tail
-      strokeWeight(1);
-      stroke(220,220,0);
-      fill(0, 0, 240);
-      ellipse(0, 0, bodySize, bodySize);
-
-      fill(0,0,0,10);
-      noStroke();
-      ellipse(0,0,huntOneRange,huntOneRange);
-      strokeWeight(0.5);
-      stroke(0,255,0,40);
-      noFill();
-      ellipse(0,0,huntManyRange,huntManyRange);
-
+      displayTail();
+      displayBody();
     popMatrix();
-    a+=1;
-    //}
+  }
+  
+  void displayTail(){
+    float b;
+    b= sin(a);
+    strokeWeight(bodySize/5);
+    stroke(0, 0, 0);
+    line(-bodySize/2, 
+         0, 
+         -bodySize*0.75 -abs((velocity.x + velocity.y)), 
+         b*abs((velocity.x+velocity.y)));
+    a += 1;
+  }
+  void displayBody(){
+    strokeWeight(1);
+    stroke(220,220,0);
+    fill(0, 0, 240);
+    ellipse(0, 0, bodySize, bodySize);
   }
 
   void run(ArrayList<Tadpole> tadpoles) {
-
-    if (hunger < maxHunger) {
+   if (hunger < maxHunger) {
       swarm(tadpoles);
       update();
       checkEdgesAlive();
-      display();
-      move();
+      display(); 
+      wander();
       huntMany();
       huntOne();
       eat();
     }
-    
-  }    
-
-  void swarm(ArrayList<Tadpole> tadpoles) {
-    PVector sep = seperate(tadpoles);
-    PVector ali = align(tadpoles);
-    PVector coh = cohesion(tadpoles);
-    PVector col = collide(tadpoles);
-
-    sep.mult(0.08);
-    ali.mult(0.04);
-    coh.mult(0.03);
-    col.mult(1);
-
-    applyForce(sep);
-    applyForce(ali);
-    applyForce(coh);
-    applyForce(col);
+  }  
+  
+  void update() {
+    velocity.add(acceleration);
+    velocity.limit(maxSpeed);
+    //acceleration.mult(accelerationMultiplier);
+    position.add(velocity);
   }
 
   void applyForce(PVector force) {
     acceleration.add(force);
-  }
-
-  void update() {
-    velocity.add(acceleration);
-    velocity.limit(maxSpeed);
-    position.add(velocity);
-    //acceleration.mult(accelerationMultiplier);
   }
 
   PVector seek(PVector target) {
@@ -321,6 +294,117 @@ class Tadpole {
     steer.limit(maxForce);
     return steer;
   }
+
+  //////////LIFECYCLE METHODS/////////////
+  void wander() {
+    //s -- range from 0.1 to about 1, using random makes the paths more exploratory seeing
+    acceleration= PVector.random2D();
+    acceleration.mult(0.25);
+  };
+
+  void huntOne() {
+    targetAcquired= false;
+    PVector dir;
+    PVector food;
+
+    for (int i=0; i<foods.length; i++)
+    {
+      food = new PVector (foods[i].position.x, foods[i].position.y);
+      dir = PVector.sub(food, position);
+      dir.normalize();
+
+      if (
+        // food is small enough AND the food is within range 
+        (foods[i].bodySize < bodySize*2 && dist(position.x, position.y, foods[i].position.x, foods[i].position.y) < huntOneRange/2) &&
+        // food is not above top of screen
+        foods[i].position.y > 0 && 
+        // no other target
+        targetAcquired==false)
+      { 
+        targetAcquired=true;
+        //strokeWeight(1);
+        //stroke(0, 0, 0, 100);
+        //line(position.x,position.y,foods[i].position.x,foods[i].position.y);
+        acceleration = dir;
+      }
+    }
+  }
+
+  void huntMany() {
+    PVector dir;
+    PVector food;
+
+    for (int i=0; i<foods.length; i++)
+    {
+      food = new PVector (foods[i].position.x, foods[i].position.y);
+      dir = PVector.sub(food, position);
+      dir.normalize();
+      dir.mult(0.2);
+
+      if (
+        // food is the right size AND within range
+        (foods[i].bodySize < bodySize*2 && dist(position.x, position.y, foods[i].position.x, foods[i].position.y) < huntManyRange/2) && 
+        // and not above top
+        foods[i].position.y > 0
+       ) {
+        //strokeWeight(1);
+        //stroke(0, 0, 0, 100);
+        //line(position.x, position.y, foods[i].position.x, foods[i].position.y);
+        acceleration = dir;
+      }
+    }
+  }
+  
+  //boolean foodIsSmallEnough(){
+  //}
+  
+  //boolean foodIsWithinRange(){
+  //  // close / far 
+  //}
+
+  //boolean deadFromStarvation(){
+  // }
+  
+  void grow(float amt) {
+    bodySize+= amt;
+  }
+
+  void eat() { 
+    hunger+=0.01; 
+
+    for (int i=0; i<foods.length; i++)
+    {
+      if (dist(position.x, position.y, foods[i].position.x, foods[i].position.y) < bodySize/2) 
+      {
+        foods[i].position.y= random(height); 
+        foods[i].position.x = random(width);
+        foodCount++;
+        hunger-=foods[i].mass;
+        grow(0.1);
+        maxSpeed += 0.01;
+      }
+    }
+  }
+
+  void checkEdgesAlive() {
+    if (position.x>width+5) {
+      position.x=-5;
+    }
+    if (position.x<-5) {
+      position.x=width+5;
+    }
+    if (position.y<0) {
+      position.y=0 ;
+      velocity.y*=-0.8; 
+      velocity.x*=1.1;
+    }
+    if (position.y>height) {
+      position.y=height; 
+      velocity.y*=-0.8;
+      velocity.x*=1.1;
+    }
+  }
+
 
   ///////////SWARM METHODS/////////////////
   PVector collide (ArrayList<Tadpole> tadpoles) {
@@ -431,100 +515,23 @@ class Tadpole {
       return new PVector (0, 0);
     }
   }
+  
+    void swarm(ArrayList<Tadpole> tadpoles) {
+    PVector sep = seperate(tadpoles);
+    PVector ali = align(tadpoles);
+    PVector coh = cohesion(tadpoles);
+    PVector col = collide(tadpoles);
 
-  //////////LIFECYCLE METHODS/////////////
-  void move() {
-    //s -- range from 0.1 to about 1, using random makes the paths more exploratory seeing
-    acceleration= PVector.random2D();
-    acceleration.mult(0.25);
-  };
+    sep.mult(0.08);
+    ali.mult(0.04);
+    coh.mult(0.03);
+    col.mult(1);
 
-  void huntOne() {
-    targetAcquired= false;
-    PVector dir;
-    PVector food;
-
-    for (int i=0; i<foods.length; i++)
-    {
-      food = new PVector (foods[i].position.x, foods[i].position.y);
-      dir = PVector.sub(food, position);
-      dir.normalize();
-
-      if (
-        (foods[i].bodySize<bodySize && dist(position.x, position.y, foods[i].position.x, foods[i].position.y)< huntOneRange/2) && foods[i].position.y > 0 && targetAcquired==false)
-      { 
-        targetAcquired=true;
-        strokeWeight(2);
-        stroke(0, 0, 0, 100);
-        line(position.x,position.y,foods[i].position.x,foods[i].position.y);
-        acceleration = dir;
-      }
-    }
+    applyForce(sep);
+    applyForce(ali);
+    applyForce(coh);
+    applyForce(col);
   }
-
-  void huntMany() {
-    PVector dir;
-    PVector food;
-
-    for (int i=0; i<foods.length; i++)
-    {
-      food = new PVector (foods[i].position.x, foods[i].position.y);
-      dir = PVector.sub(food, position);
-      dir.normalize();
-      dir.mult(0.2);
-
-      //// is this right?
-      if (
-        (foods[i].bodySize<bodySize && 
-         dist(position.x, position.y, foods[i].position.x, foods[i].position.y)< huntManyRange/2) && 
-         (dist(position.x, position.y, foods[i].position.x, foods[i].position.y)> huntOneRange/2) && 
-         foods[i].position.y > 0)
-
-      { 
-        strokeWeight(0.5);
-        stroke(100, 100, 100, 20);
-        line(position.x,position.y,foods[i].position.x,foods[i].position.y);
-        acceleration = dir;
-      }
-    }
-  }
-
-  void eat() { 
-    hunger+=0.01; 
-
-    for (int i=0; i<foods.length; i++)
-    {
-      if (dist(position.x, position.y, foods[i].position.x, foods[i].position.y) < bodySize/2) 
-      {
-        foods[i].position.y= random(height); 
-        foods[i].position.x = random(width);
-        foodCount++;
-        hunger-=foods[i].mass;
-        bodySize+= 0.01; //should be separate method
-        maxSpeed += 0.01;
-      }
-    }
-  }
-
-  void checkEdgesAlive() {
-    if (position.x>width+5) {
-      position.x=-5;
-    }
-    if (position.x<-5) {
-      position.x=width+5;
-    }
-    if (position.y<0) {
-      position.y=0 ;
-      velocity.y*=-0.8; 
-      velocity.x*=1.1;
-    }
-    if (position.y>height) {
-      position.y=height; 
-      velocity.y*=-0.8;
-      velocity.x*=1.1;
-    }
-  }
-
 }
 class Feeder {
   float x;

@@ -1,5 +1,5 @@
-int initialTadpoles = 5;
-int initialFoods =   100;
+int initialTadpoles = 1;
+int initialFoods =   1;
 int fps =            30;
 PVector gravity =    new PVector (0, 0.6);
 Tadpole[] tadpoles = new Tadpole[initialTadpoles];
@@ -27,7 +27,7 @@ void makeFood(){
 }
 
 void setup() {
-  size(1400, 800);
+  size(400, 400);
   setupFoods();
   setupSwarm();
 }

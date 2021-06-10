@@ -1,9 +1,9 @@
 int initialTadpoles = 1;
-int initialFoods =   1;
-int fps =            30;
-PVector gravity =    new PVector (0, 0.6);
-Tadpole[] tadpoles = new Tadpole[initialTadpoles];
-Food[] foods =       new Food[initialFoods];
+int initialFoods =    100;
+int fps =             30;
+PVector gravity =     new PVector (0, 0.6);
+Tadpole[] tadpoles =  new Tadpole[initialTadpoles];
+Food[] foods =        new Food[initialFoods];
 Swarm swarm;
 
 void makeFood(){

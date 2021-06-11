@@ -1,13 +1,16 @@
 // initial settings
-int initialTadpoles = 1;
-int initialFoods =    5;
+int initialTadpoles = 10;
+int initialFoods =    50;
 int fps =             30;
 // forces
 PVector gravity =     new PVector (0, 0.6);
 // camera view
-float cameraX = 210;
-float cameraY = 200;
-float zoom = 0.5;
+//float cameraX = 210;
+//float cameraY = 200;
+//float zoom = 0.5;
+float cameraX = 0;
+float cameraY = 0;
+float zoom = 1;
 // entities
 Tadpole[] tadpoles =  new Tadpole[initialTadpoles];
 Food[] foods =        new Food[initialFoods];

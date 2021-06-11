@@ -31,8 +31,9 @@ class Tadpole {
   float growthFactorSize;
   float growthFactorMaxSpeed;
   int foodCount;
+  int gender;
+  color bodyColor;
   int longCloseRatio;
-  color gender;
   boolean targetAcquired;
   int[] metamorphosis = new int[3];
   Tadpole[] others; //class of others
@@ -69,6 +70,15 @@ class Tadpole {
     metamorphosis[0] = 0;
     metamorphosis[1] = 20;
     metamorphosis[2] = 50;
+    gender = round(random(0, 2));
+
+    if (gender == 0) {
+      bodyColor = color(220, 50, 50);
+    } else if (gender == 1) {
+      bodyColor = color(50, 220, 50);
+    } else {
+      bodyColor = color(50, 50, 220);
+    }
 
     // Functional
     bodySize= mass*5;
@@ -94,16 +104,13 @@ class Tadpole {
     float absoluteVelocity = abs(velocity.x + velocity.y);
     strokeWeight(bodySize/5);
     stroke(0, 0, 0);
-    line(
-      bodyCenter.x, bodyCenter.y, 
-      tailLength - absoluteVelocity, b * absoluteVelocity
-    );
+    line(bodyCenter.x, bodyCenter.y, tailLength - absoluteVelocity, b * absoluteVelocity);
   }
 
   void displayBody() {
     strokeWeight(1);
     stroke(220, 220, 0);
-    fill(0, 0, 240);
+    fill(bodyColor);
     ellipse(0, 0, bodySize, bodySize);
   }
 
@@ -182,10 +189,7 @@ class Tadpole {
   }
 
   boolean canTargetFood(Food food){
-    return (
-      (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && 
-      food.position.y > 0
-    );
+    return ( (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && food.position.y > 0 );
   }
   
   boolean foodIsSmallEnough(Food food){

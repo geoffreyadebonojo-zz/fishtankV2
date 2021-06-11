@@ -13,7 +13,7 @@ class Food {
     velocity = new PVector (0, 0);
     acceleration = new PVector(0, 0);
     mass= imass;
-    bodySize= 1+ mass;
+    bodySize= 1+ mass/3;
     initMaxSpeed = bodySize-1; 
     maxSpeed = initMaxSpeed;
     spoilTimer = mass*2;

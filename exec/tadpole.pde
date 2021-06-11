@@ -32,6 +32,7 @@ class Tadpole {
   float growthFactorMaxSpeed;
   int foodCount;
   int gender;
+  int neighbordist;
   color bodyColor;
   int longCloseRatio;
   boolean targetAcquired;
@@ -56,10 +57,10 @@ class Tadpole {
     // Genome
     mass= 1;
     maxSpeed= 3;
-    longCloseRatio= 2;
+    //longCloseRatio= 2;
     huntOneRange= 100;
-    huntManyRange= huntOneRange * longCloseRatio;
-    desiredSep= 80;
+    huntManyRange= 150;
+    desiredSep= 200;
     maxSteer= 0.05;
     maxHunger= 20;
     linger= 2;
@@ -71,7 +72,9 @@ class Tadpole {
     metamorphosis[1] = 20;
     metamorphosis[2] = 50;
     gender = round(random(0, 2));
+    neighbordist = 50;
 
+    // Functional
     if (gender == 0) {
       bodyColor = color(220, 50, 50);
     } else if (gender == 1) {
@@ -79,8 +82,6 @@ class Tadpole {
     } else {
       bodyColor = color(50, 50, 220);
     }
-
-    // Functional
     bodySize= mass*5;
     bodyCenter = new PVector(-bodySize/2, 0);
     jitterSpeed= 0.1;
@@ -108,8 +109,9 @@ class Tadpole {
   }
 
   void displayBody() {
-    strokeWeight(1);
-    stroke(220, 220, 0);
+    //strokeWeight(1);
+    noStroke();
+    //stroke(220, 220, 0);
     fill(bodyColor);
     ellipse(0, 0, bodySize, bodySize);
   }
@@ -235,11 +237,11 @@ class Tadpole {
 
   void mature() {
     if (between(foodCount, metamorphosis[0], metamorphosis[1])) {
-      println("phase 1");
+ 
     } else if (between(foodCount, metamorphosis[1], metamorphosis[2])) {
-      println("phase 2");
+ 
     } else {
-      println("final form!!");
+ 
     }
   }
   
@@ -345,7 +347,7 @@ class Tadpole {
   }
 
   PVector align (ArrayList<Tadpole>tadpoles) {
-    float neighbordist = 50;
+    // float neighbordist = 50;
     PVector sum = new PVector(0, 0);
     int count = 0;
     for (Tadpole other : tadpoles) {
@@ -369,7 +371,7 @@ class Tadpole {
   }     
 
   PVector cohesion(ArrayList<Tadpole> tadpoles) {
-    float neighbordist = 50;
+    // float neighbordist = 50;
     PVector sum = new PVector(0, 0); 
     int count = 0;
 
@@ -395,7 +397,7 @@ class Tadpole {
     PVector coh = cohesion(tadpoles);
     PVector col = collide(tadpoles);
 
-    sep.mult(0.08);
+    sep.mult(0.5);
     ali.mult(0.04);
     coh.mult(0.03);
     col.mult(1);

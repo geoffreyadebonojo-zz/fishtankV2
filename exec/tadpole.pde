@@ -34,6 +34,7 @@ class Tadpole {
   int longCloseRatio;
   color gender;
   boolean targetAcquired;
+  int[] metamorphosis = new int[3];
   Tadpole[] others; //class of others
 
   /*-=-=-=-=-=-=-=-=-=-=-=- CONSTRUCTOR -=-=-=-=-=-=-=-=-=-=-=-*/
@@ -64,6 +65,10 @@ class Tadpole {
     tailBodyRatio= 0.75;
     growthFactorSize = 0.1;
     growthFactorMaxSpeed = 0.01;
+    //make into array;
+    metamorphosis[0] = 0;
+    metamorphosis[1] = 20;
+    metamorphosis[2] = 50;
 
     // Functional
     bodySize= mass*5;
@@ -87,7 +92,6 @@ class Tadpole {
   void displayTail() {
     b = sin(a);
     float absoluteVelocity = abs(velocity.x + velocity.y);
-    
     strokeWeight(bodySize/5);
     stroke(0, 0, 0);
     line(
@@ -224,10 +228,21 @@ class Tadpole {
 
   //void metabolize(){
   //}
+
+  void mature() {
+    if (between(foodCount, metamorphosis[0], metamorphosis[1])) {
+      println("phase 1");
+    } else if (between(foodCount, metamorphosis[1], metamorphosis[2])) {
+      println("phase 2");
+    } else {
+      println("final form!!");
+    }
+  }
   
   void grow() {
     bodySize += growthFactorSize;
     maxSpeed += growthFactorMaxSpeed;
+    mature();
   }
 
   void eat() { 
@@ -235,10 +250,10 @@ class Tadpole {
 
     for (int i=0; i<foods.length; i++) {
       if (foodIsWithinRange("eat", foods[i])) {
-        //////////////////////////////////////
         // handle elsewhere, some other way //
+        //////////////////////////////////////
         foods[i].position.y = random(height); 
-        foods[i].position.x = random(width);
+        foods[i].position.x = random(width-20) + 10;
         //////////////////////////////////////
         // maturity?
         foodCount++;
@@ -385,6 +400,11 @@ class Tadpole {
     applyForce(ali);
     applyForce(coh);
     applyForce(col);
+  }
+
+  /*-=-=-=-=-=-=-=-=-=-=-=- HELPER METHODS -=-=-=-=-=-=-=-=-=-=-=*/
+  boolean between(int v, int start, int end) {
+    return (v >= start && v < end);
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=- DEBUG METHODS -=-=-=-=-=-=-=-=-=-=-=-*/

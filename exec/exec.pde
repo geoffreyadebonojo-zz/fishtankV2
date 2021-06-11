@@ -1,7 +1,14 @@
+// initial settings
 int initialTadpoles = 1;
-int initialFoods =    10;
+int initialFoods =    5;
 int fps =             30;
+// forces
 PVector gravity =     new PVector (0, 0.6);
+// camera view
+float cameraX = 210;
+float cameraY = 200;
+float zoom = 0.5;
+// entities
 Tadpole[] tadpoles =  new Tadpole[initialTadpoles];
 Food[] foods =        new Food[initialFoods];
 Swarm swarm;
@@ -27,6 +34,7 @@ void makeFood(){
 }
 
 void setup() {
+  // window size
   size(400, 400);
   setupFoods();
   setupSwarm();
@@ -39,7 +47,7 @@ void draw() {
     scale(zoom);
     translate(cameraX, cameraY);
     fill(150);
-    rect(0, 0, 400, 400);
+    rect(0, 0, width, height);
     makeFood();
     swarm.run();
   popMatrix();

@@ -54,7 +54,7 @@ class Food {
 
   void respawn() {
     if (position.x < 0){
-      position.y = width;
+      position.x = width;
     } else if (position.x > width){
       position.x= 0;
     }

@@ -1,60 +1,76 @@
 boolean debugMode = false;
 
+/*-=-=-=-=-=-=-=-=-=-=-=- CLASS DEFINITION -=-=-=-=-=-=-=-=-=-=-=-*/
 class Tadpole {
 
   PVector position;
   PVector velocity;
   PVector acceleration;
+  PVector bodyCenter;
   float x;
   float y;
   float a;
+  float b;
   float s;
   float mass;
   float bodySize;   
   float angle;
-  float normalSpeed;
   float maxSpeed;
   float jitterSpeed;
   float huntManyRange;
   float huntOneRange;
-  boolean targetAcquired;
-  float y1;
-  float y2;
-  float maxForce;
+  float maxSteer;
   float angleInit = random(TWO_PI);
   float desiredSep;
-  int foodCount;
   float hunger;
   float maxHunger;
   float linger;
-  float accelerationMultiplier;
+  float tailBodyRatio;
+  float tailLength;
+  float absoluteVelocity;
+  float growthFactorSize;
+  float growthFactorMaxSpeed;
+  int foodCount;
+  int longCloseRatio;
   color gender;
+  boolean targetAcquired;
   Tadpole[] others; //class of others
 
-  ////////////CONSTRUCTOR////////////////////
+  /*-=-=-=-=-=-=-=-=-=-=-=- CONSTRUCTOR -=-=-=-=-=-=-=-=-=-=-=-*/
   Tadpole (float x, float y, Tadpole[] oin) {
-    others = oin;
 
+    // Movements
     position= new PVector (x, y);
     velocity= new PVector (5*cos(angleInit), 5*sin(angleInit));
     acceleration= new PVector (0, 0);
-
+    others = oin;
     a = random(360); //begin life at a random angle
     s = random(0.1); //this can be anywhere from 0 to 10; the lower the better, surivability wise; could pop both out into explore method
 
-    mass=                   1;
-    bodySize=               mass*5;
-    maxSpeed=               3;
-    jitterSpeed =           0.1;
-    huntManyRange=          200;
-    huntOneRange=           100;
-    desiredSep=             80;
-    maxForce=               0.05;
-    foodCount=              0;
-    hunger=                 0;
-    maxHunger=              2;
-    linger=                 2;
-    accelerationMultiplier= 0;
+    // counters
+    foodCount= 0;
+    hunger= 0;
+
+    // Genome
+    mass= 1;
+    maxSpeed= 3;
+    longCloseRatio= 2;
+    huntOneRange= 100;
+    huntManyRange= huntOneRange * longCloseRatio;
+    desiredSep= 80;
+    maxSteer= 0.05;
+    maxHunger= 20;
+    linger= 2;
+    tailBodyRatio= 0.75;
+    growthFactorSize = 0.1;
+    growthFactorMaxSpeed = 0.01;
+
+    // Functional
+    bodySize= mass*5;
+    bodyCenter = new PVector(-bodySize/2, 0);
+    jitterSpeed= 0.1;
+    tailLength = bodySize * -tailBodyRatio;
+
   }
 
   void display() {
@@ -65,23 +81,24 @@ class Tadpole {
       displayTail();
       displayBody();
     popMatrix();
+    a += 1;
   }
   
   void displayTail() {
-    float b;
-    b= sin(a);
+    b = sin(a);
+    float absoluteVelocity = abs(velocity.x + velocity.y);
+    
     strokeWeight(bodySize/5);
     stroke(0, 0, 0);
-    line(-bodySize/2, 
-         0, 
-         -bodySize*0.75 -abs((velocity.x + velocity.y)), 
-         b*abs((velocity.x+velocity.y)));
-    a += 1;
+    line(
+      bodyCenter.x, bodyCenter.y, 
+      tailLength - absoluteVelocity, b * absoluteVelocity
+    );
   }
 
   void displayBody() {
     strokeWeight(1);
-    stroke(220,220,0);
+    stroke(220, 220, 0);
     fill(0, 0, 240);
     ellipse(0, 0, bodySize, bodySize);
   }
@@ -102,7 +119,6 @@ class Tadpole {
   void update() {
     velocity.add(acceleration);
     velocity.limit(maxSpeed);
-    //acceleration.mult(accelerationMultiplier);
     position.add(velocity);
   }
 
@@ -116,7 +132,7 @@ class Tadpole {
     desired.mult(3);
 
     PVector steer = PVector.sub(desired, velocity);
-    steer.limit(maxForce);
+    steer.limit(maxSteer);
     return steer;
   }
 
@@ -155,18 +171,15 @@ class Tadpole {
       dir.mult(0.2);
 
       if (canTargetFood(foods[i])) {
-          acceleration = dir;
-          drawLines(foods[i]);
-        }
+        acceleration = dir;
+        drawLines(foods[i]);
+      }
     }
   }
 
   boolean canTargetFood(Food food){
     return (
-      (
-        foodIsSmallEnough(food) && 
-        foodIsWithinRange("long", food)
-      ) && 
+      (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && 
       food.position.y > 0
     );
   }
@@ -208,11 +221,13 @@ class Tadpole {
 
   //boolean deadFromStarvation(){
   // }
+
+  //void metabolize(){
+  //}
   
-  void grow(float amt) {
-    // amt = 1 by default
-    bodySize += amt/10;
-    maxSpeed += amt/100;
+  void grow() {
+    bodySize += growthFactorSize;
+    maxSpeed += growthFactorMaxSpeed;
   }
 
   void eat() { 
@@ -220,15 +235,22 @@ class Tadpole {
 
     for (int i=0; i<foods.length; i++) {
       if (foodIsWithinRange("eat", foods[i])) {
+        //////////////////////////////////////
+        // handle elsewhere, some other way //
         foods[i].position.y = random(height); 
         foods[i].position.x = random(width);
+        //////////////////////////////////////
         // maturity?
         foodCount++;
+        // satiety (needs to be sufficiently high to mate)
         hunger -= foods[i].mass;
-        grow(0.1);
+        grow();
       }
     }
   }
+
+  /*-=-=-=-=-=-=-=-=-=-=-=- CONSTRAINT METHODS -=-=-=-=-=-=-=-=-=-=-=-*/
+  // replace with force appliers, ideally
 
   void checkEdgesAlive() {
     if (position.x>width+5) {
@@ -240,12 +262,12 @@ class Tadpole {
     if (position.y<0) {
       position.y=0 ;
       velocity.y*=-0.8; 
-      velocity.x*=1.1;
+      // velocity.x*=1.1;
     }
     if (position.y>height) {
       position.y=height; 
       velocity.y*=-0.8;
-      velocity.x*=1.1;
+      // velocity.x*=1.1;
     }
   }
 
@@ -297,7 +319,7 @@ class Tadpole {
       steer.normalize();
       steer.mult(1);
       steer.sub(velocity);
-      steer.limit(maxForce);
+      steer.limit(maxSteer);
     }
 
     return steer;
@@ -320,7 +342,7 @@ class Tadpole {
       sum.normalize();
       sum.mult(1);
       PVector steer = PVector.sub(sum, velocity);
-      steer.limit(maxForce);
+      steer.limit(maxSteer);
       return steer;
     } else {
       return new PVector(0, 0);

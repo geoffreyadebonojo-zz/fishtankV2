@@ -1,17 +1,35 @@
+float cameraX = 0;
+float cameraY = 0;
+float zoom = 1;
+
 void keyPressed(){
   if (key == CODED) {
     if (keyCode == DOWN) {
-      noLoop();
+      //noLoop();
+      cameraY += 10;
     }
     if (keyCode == UP) {
-      loop();
+      //loop();
+      cameraY -= 10;
     }
     if (keyCode == LEFT) {
-      frameRate(10);
+      //frameRate(10);
+      cameraX -= 10;
     }
     if (keyCode == RIGHT) {
-      frameRate(20);
+      //frameRate(20);
+      cameraX += 10;
     }
+  }
+  if (keyCode == 44) {
+    //frameRate(10);
+    zoom -= 0.1;
+    println(zoom);
+  }
+  if (keyCode == 46) {
+    //frameRate(20);
+    zoom += 0.1;
+    println(zoom);
   }
 }
 

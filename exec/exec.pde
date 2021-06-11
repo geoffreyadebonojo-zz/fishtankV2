@@ -1,6 +1,6 @@
 // initial settings
-int initialTadpoles = 10;
-int initialFoods =    50;
+int initialTadpoles = 30;
+int initialFoods =    100;
 int fps =             30;
 // forces
 PVector gravity =     new PVector (0, 0.6);
@@ -31,14 +31,16 @@ void makeFood(){
     if (foods[i].spoilTimer<=0) {
       foods[i].spoilTimer=20;
       foods[i].position.x=random(width);
-      foods[i].position.y=random(height);
+      //foods[i].position.y=random(height);
+      //foods[i].position.x= width/2;
+      foods[i].position.y= 0;
     }
   }
 }
 
 void setup() {
   // window size
-  size(400, 400);
+  size(800, 500);
   setupFoods();
   setupSwarm();
 }

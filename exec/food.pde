@@ -7,6 +7,7 @@ class Food {
   float mass;
   float bodySize;
   float spoilTimer;
+  boolean beingChased;
   
   Food(float x, float y, float imass) {
     position = new PVector (x, y);
@@ -17,6 +18,7 @@ class Food {
     initMaxSpeed = bodySize-1; 
     maxSpeed = initMaxSpeed;
     spoilTimer = mass*2;
+    beingChased = false;
   }
 
   void display() {
@@ -67,6 +69,6 @@ class Food {
 
 void setupFoods(){
   for (int i = 0; i<foods.length; i++) {
-    foods[i] = new Food(width, height, random(1,5));
+    foods[i] = new Food(width/2, 1, random(1,5));
   }
 }

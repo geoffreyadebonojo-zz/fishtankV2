@@ -32,6 +32,7 @@ class Tadpole {
   float maxTargetSize;
   
   int id;
+  int lifeCycleStage = 0;
   int foodCount;
   int gender;
   int neighbordist;
@@ -54,7 +55,7 @@ class Tadpole {
     s = random(0.1); //this can be anywhere from 0 to 10; the lower the better, surivability wise; could pop both out into explore method
 
     // counters
-    foodCount= 21;
+    foodCount= 0;
     //foodCount= 0;
     hunger= 0;
 
@@ -165,28 +166,29 @@ class Tadpole {
   }  
   
   void update() {
-    absoluteAcceleration = abs(acceleration.x + acceleration.y);
+    if (lifeCycleStage == 2){
+     
+    } else {
+      absoluteAcceleration = abs(acceleration.x + acceleration.y);
 
-    velocity.add(acceleration);
-    absoluteVelocity = abs(velocity.x + velocity.y);
+      velocity.add(acceleration);
+      absoluteVelocity = abs(velocity.x + velocity.y);
 
-     velocity.limit(maxSpeed);
+      velocity.limit(maxSpeed);
 
-    position.add(velocity);
+      position.add(velocity);
 
-    a += absoluteVelocity/2;
-    // a += absoluteAcceleration/2;
+      a += absoluteVelocity/2;
 
-    if (abs(velocity.x) > 0.0) {
-      velocity.x *= 0.99;
-    } 
+      if (abs(velocity.x) > 0.0) {
+        velocity.x *= 0.99;
+      } 
 
-    if (abs(velocity.y) > 0.0) {
-      velocity.y *= 0.99;
-    } 
+      if (abs(velocity.y) > 0.0) {
+        velocity.y *= 0.99;
+      } 
+    }
 
-    // println("vel:", absoluteVelocity);
-    // println("acc:", absoluteAcceleration);
   }
 
   void applyForce(PVector force) {
@@ -307,11 +309,44 @@ class Tadpole {
     c = cos(a/10);
     d = sin(a/10);
 
-    if (foodCount > metamorphosis[1]) {
+    if (foodCount > metamorphosis[2]) {
+      lifeCycleStage = 2;
+      stageThree();
+
+    } else if (between(foodCount, metamorphosis[1], metamorphosis[2])) {
+      lifeCycleStage = 1;
       stageTwo();
-    } else {
+      
+    } else if (between(foodCount, metamorphosis[0], metamorphosis[1])) { //
+      lifeCycleStage = 0;
       stageOne();
     }
+  }
+
+  void stageThree() {
+    jitterSpeed = 0.0;
+    acceleration.x = 0;
+    acceleration.y = 0;
+    velocity.x = 0;
+    velocity.y = 0;
+ 
+    strokeWeight(bodySize/10);
+    stroke(0, 0, 0);
+
+    pushMatrix();
+      rotate(-angle);
+      line(0, 0, -10, 7);
+      line(0, 0, 10, 7);
+    popMatrix();
+    fill(bodyColor);
+    pushMatrix();
+      rotate(radians(15));
+      arc(0, 0, bodySize*3, bodySize*3, 0, radians(330), PIE);
+    popMatrix();
+    fill(100);
+    ellipse(0, 0, 1, 1);
+
+
   }
 
   void stageTwo() {
@@ -377,7 +412,7 @@ class Tadpole {
   }
   
   void stageOne() {
-    jitterSpeed = 3.0;
+    jitterSpeed = 1.5;
     noStroke();
     fill(bodyColor);
     ellipse(0, 0, bodySize, bodySize);

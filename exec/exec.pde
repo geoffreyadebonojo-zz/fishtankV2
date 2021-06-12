@@ -1,11 +1,11 @@
 boolean debugOne = false;
 boolean debugMany = false;
 boolean showBodyLines = false;
-boolean spriteMode = true;
+boolean spriteMode = false;
 
 // initial settings
 int initialTadpoles = 1;
-int initialFoods =    10;
+int initialFoods =    200;
 int fps =             30;
 // forces
 PVector gravity = new PVector(0, 0.6);
@@ -52,22 +52,29 @@ void setup() {
 
 int c = 0;
 float px, py;
-float cameraX, cameraY, zoom;
+//float cameraX, cameraY, zoom;
+
+float cameraX = -320.0; // adjustment
+float cameraY = -360.0;
+float zoom = 6.0;
+
 
 void draw() {
   
-  if (focusOn < 0) { // global focus
-    cameraX = 0; // adjustment
-    cameraY = 0;
-    //zoom = 0.5;
-    zoom = 1.0;
-    
-  } else {  // target focus
-    px = swarm.tadpoles.get(focusOn).position.x;
-    py = swarm.tadpoles.get(focusOn).position.y;
-    cameraX = -px + 200;
-    cameraY = -py + 200;
-    zoom = 2;
+  if (spriteMode == false) {
+    if (focusOn < 0) { // global focus
+      cameraX = 0; // adjustment
+      cameraY = 0;
+      //zoom = 0.5;
+      zoom = 1.0;
+      
+    } else {  // target focus
+      px = swarm.tadpoles.get(focusOn).position.x;
+      py = swarm.tadpoles.get(focusOn).position.y;
+      cameraX = -px + 200;
+      cameraY = -py + 200;
+      zoom = 2;
+    }
   }
   
   c++;

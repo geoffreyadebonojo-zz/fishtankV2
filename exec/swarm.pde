@@ -31,10 +31,9 @@ void setupSwarm() {
   swarm = new Swarm();
   for (int i = 0; i <tadpoles.length; i++) {
     Tadpole tadpole = new Tadpole(
-      random((width/2) -25, 
-      (width/2) +25), 
-      random((height/2) -25, 
-      height/2 +25), 
+      //random((width) -200, (width) +200), 
+      random((width/2 - 20), (width/2 + 20)),
+      random((height/2) -25, (height/2) +25), 
       tadpoles, 
       i
     );

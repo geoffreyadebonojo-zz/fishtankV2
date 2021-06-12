@@ -1,31 +1,24 @@
 boolean debugOne = false;
 boolean debugMany = false;
 boolean showBodyLines = false;
-boolean spriteMode = false;
+boolean spriteMode = true;
 
 // initial settings
-int initialTadpoles = 30;
-int initialFoods =    30;
-int fps =             180;
+int initialTadpoles = 1;
+int initialFoods =    10;
+int fps =             30;
 // forces
 PVector gravity = new PVector(0, 0.6);
+PVector friction = new PVector(0.05, 0.05);
 
 // entities
 Tadpole[] tadpoles =  new Tadpole[initialTadpoles];
 Food[] foods =        new Food[initialFoods];
 Swarm swarm;
 
+float containerScale = 1.0;
+int focusOn = -1;
 
- //if(spriteMode) {
- //float cameraX = -120.0;
- //float cameraY = -140.0;
- //float zoom = 4.0;
- //} 
- //else {
-  float cameraX = 0;
-  float cameraY = 0;
-  float zoom = 1;
- //}
 
 void makeFood(){
   for (int i =0; i<foods.length; i++){
@@ -41,9 +34,9 @@ void makeFood(){
     
     if (foods[i].spoilTimer<=0) {
       foods[i].spoilTimer=20;
-      foods[i].position.x=random(width);
-      //foods[i].position.y=random(height);
-      //foods[i].position.x= width/2;
+      foods[i].position.x=random(width * 2);
+      //foods[i].position.y=random(height * 2);
+      //foods[i].position.x= width * 2/2;
       foods[i].position.y= 0;
     }
   }
@@ -58,18 +51,57 @@ void setup() {
 }
 
 int c = 0;
+float px, py;
+float cameraX, cameraY, zoom;
+
 void draw() {
+  
+  if (focusOn < 0) { // global focus
+    cameraX = 0; // adjustment
+    cameraY = 0;
+    //zoom = 0.5;
+    zoom = 1.0;
+    
+  } else {  // target focus
+    px = swarm.tadpoles.get(focusOn).position.x;
+    py = swarm.tadpoles.get(focusOn).position.y;
+    cameraX = -px + 200;
+    cameraY = -py + 200;
+    zoom = 2;
+  }
+  
   c++;
   frameRate(fps);
-  println(c/30, tadpoles.length);
   background(255, 20);
+  
   pushMatrix();
     scale(zoom);
     translate(cameraX, cameraY);
     fill(150);
     noStroke();
-    rect(0, 0, width, height);
+    rect(0, 0, width * containerScale, height * containerScale);
     makeFood();
     swarm.run();
   popMatrix();
+  
+  //pushMatrix();
+  //  scale(zoom);
+  //  translate(-800, cameraY);
+  //  fill(100);
+  //  noStroke();
+  //  rect(0, 0, (width * containerScale), height * containerScale);
+  //  makeFood();
+  //  swarm.run();
+  //popMatrix();
+
+  //pushMatrix();
+  //  scale(zoom);
+  //  translate(800, cameraY);
+  //  fill(200);
+  //  noStroke();
+  //  rect(0, 0, (width * containerScale), height * containerScale);
+  //  makeFood();
+  //  swarm.run();
+  //popMatrix();
+  
 }

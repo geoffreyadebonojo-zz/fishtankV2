@@ -50,26 +50,26 @@ class Food {
   }
 
   void checkEdges() {
-    if (position.y > height) {
+    if (position.y > height * containerScale) {
       position.y = 0;
     }
   }
 
   void respawn() {
     if (position.x < 0){
-      position.x = width;
-    } else if (position.x > width){
+      position.x = width * containerScale;
+    } else if (position.x > width * containerScale){
       position.x= 0;
     }
     
-    if (position.y < 0 || position.y > height){
-     position.y= random(width);
+    if (position.y < 0 || position.y > height * containerScale){
+     position.y= random(width * containerScale);
     }
   }
 }
 
 void setupFoods(){
   for (int i = 0; i<foods.length; i++) {
-    foods[i] = new Food(width/2, 1, random(1,5));
+    foods[i] = new Food(width * 2/2, 1, random(1,5));
   }
 }

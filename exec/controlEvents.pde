@@ -36,6 +36,18 @@ void keyPressed(){
     debugMany = !debugMany;
     println("debugMany: ", debugMany);
   }
+  if (keyCode == 84) {
+    focusOn += 1;
+    if (focusOn >= swarm.tadpoles.size()){
+      focusOn = 0;
+    }
+    println(focusOn);
+  }
+  
+  //println(keyCode);
+  if (keyCode == 82) {
+    focusOn = -1;
+  }
   
   if (keyCode == 81){
     println(cameraX, cameraY, zoom);

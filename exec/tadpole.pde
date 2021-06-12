@@ -79,10 +79,10 @@ class Tadpole {
       bodyColor = color(220, 50, 50);
       maxHunger= 2;
       aliMult = 0.05;
-      sepMult = 0.8;
+      sepMult = 1.2;
       colMult = 2.0; 
       maxSteer= 0.1;
-      maxSpeed= 5;
+      maxSpeed= 3.5;
       huntOneRange= 100;
       huntManyRange= 120;
 
@@ -91,10 +91,10 @@ class Tadpole {
       bodyColor = color(50, 220, 50);
       maxHunger= 4;
       aliMult = 1.0;
-      sepMult = 0.5;
+      sepMult = 0.75;
       colMult = 1.0; 
       maxSteer= 0.08;
-      maxSpeed= 3;
+      maxSpeed= 3.3;
       huntOneRange= 80;
       huntManyRange= 160;
 
@@ -103,10 +103,10 @@ class Tadpole {
       bodyColor = color(50, 50, 220);
       maxHunger= 8;
       aliMult = 5.0;
-      sepMult = 0.2;
+      sepMult = 0.6;
       colMult = 0.5;
       maxSteer= 0.06;
-      maxSpeed= 2;
+      maxSpeed= 2.8;
       huntOneRange= 50;
       huntManyRange= 200;
 
@@ -119,7 +119,7 @@ class Tadpole {
      huntManyRange= 150;
      //maxHunger = 10000000;
 
-     sepMult = 0.8; // 10 is kinda like gas molecules
+     //sepMult = 0.8; // 10 is kinda like gas molecules
      aliMult = 0.04;   // 10 is like a herd of sheep
      // how close they WANT to be
      cohMult = 0.03; // 10 they pull together, almost overlapping;
@@ -365,7 +365,7 @@ class Tadpole {
         line(
           bodyCenter.x+3, 
           bodyCenter.y, 
-          tailLength - absoluteVelocity, 
+          (tailLength - absoluteVelocity)/2, 
           absoluteVelocity
         );
       popMatrix();

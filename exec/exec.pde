@@ -4,9 +4,9 @@ boolean showBodyLines = false;
 boolean spriteMode = false;
 
 // initial settings
-int initialTadpoles = 1;
-int initialFoods =    50;
-int fps =             30;
+int initialTadpoles = 30;
+int initialFoods =    30;
+int fps =             180;
 // forces
 PVector gravity = new PVector(0, 0.6);
 
@@ -56,9 +56,12 @@ void setup() {
   setupFoods();
   setupSwarm();
 }
-  
+
+int c = 0;
 void draw() {
+  c++;
   frameRate(fps);
+  println(c/30, tadpoles.length);
   background(255, 20);
   pushMatrix();
     scale(zoom);

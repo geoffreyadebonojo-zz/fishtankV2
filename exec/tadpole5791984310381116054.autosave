@@ -1,3 +1,7 @@
+boolean debugOne = false;
+boolean debugMany = false;
+boolean showBodyLines = false;
+
 /*-=-=-=-=-=-=-=-=-=-=-=- CLASS DEFINITION -=-=-=-=-=-=-=-=-=-=-=-*/
 class Tadpole {
 
@@ -5,7 +9,7 @@ class Tadpole {
   PVector velocity;
   PVector acceleration;
   PVector bodyCenter;
-  float x, y, a, b, c, d, e, s;
+  float x, y, a, b, c, d, s;
   float mass;
   float bodySize;   
   float angle;
@@ -288,75 +292,63 @@ class Tadpole {
     b = sin(a);
     c = cos(a/10);
     d = sin(a/10);
-
     float absoluteVelocity = abs(velocity.x + velocity.y);
-    println(absoluteVelocity);
     //float absoluteVelocity = 8;
 
     if (foodCount > metamorphosis[1]) {
-  
-      //a = 45;
-      a += absoluteVelocity;
-    
+    //if (between(foodCount, metamorphosis[1], metamorphosis[2])) {
       noFill();
   
-      PVector startpoint = new PVector(round(bodyCenter.x -3), round(bodyCenter.y));
-      PVector endpoint1 =   new PVector(-20, -8*d);
-      PVector endpoint2 =   new PVector(-20, 8*d );
+      PVector startpoint = new PVector(round(bodyCenter.x - 3), round(bodyCenter.y));
+      PVector endpoint1 =   new PVector(-absoluteVelocity, -5*d);
+      PVector endpoint2 =   new PVector(-20, 5*d);
 
       // top curve    
-      float m = 2;
-      float n = 10;
-
-      float flagAngle = PI/5; //3..5
-      //flagAngle = 0;
+      float m = 5;
+      float n = 5;
       PVector tc1 = new PVector(-12, m *d);
       PVector tc2 = new PVector(-12, -n *c);
       strokeWeight(0.3);
       stroke(0, 0, 0);
-      pushMatrix();
-         translate(0, 2);
-         rotate(flagAngle);
-        bezier(
-          startpoint.x, startpoint.y,
-          tc1.x, tc1.y,
-          tc2.x, tc2.y, 
-          endpoint1.x, endpoint1.y
-        );
+      bezier(
+        startpoint.x, startpoint.y,
+        tc1.x, tc1.y,
+        tc2.x, tc2.y, 
+        endpoint1.x, endpoint1.y
+      );
+
+      // bottom curve
+      PVector bc1 = new PVector(tc1.x, -m *d);
+      PVector bc2 = new PVector(tc2.x, n *c);
+      bezier(
+        startpoint.x, startpoint.y,
+        bc1.x, bc1.y,
+        bc2.x, bc2.y, 
+        endpoint2.x, endpoint2.y
+      );
+
+      // strokeWeight(bodySize/5);
+      //strokeWeight(0.3);
+      //stroke(0, 0, 0);
+      //line(startpoint.x, startpoint.y, endpoint.x, endpoint.y);
+      
        if (showBodyLines == true){
          stroke(102, 255, 0);
          strokeWeight(0.5);
          line(startpoint.x, startpoint.y, tc1.x, tc1.y);
          line(endpoint1.x, endpoint1.y, tc2.x, tc2.y);
+         
+         stroke(255, 102, 0);
+         strokeWeight(0.5);
+         line(startpoint.x, startpoint.y, bc1.x, bc1.y);
+         line(endpoint2.x, endpoint2.y, bc2.x, bc2.y);
        }
-       
-      popMatrix();
-
-      // bottom curve
-      PVector bc1 = new PVector(tc1.x, -m *d);
-      PVector bc2 = new PVector(tc2.x, n *c);
-       pushMatrix();
-         translate(0, -2);
-         rotate(-flagAngle);
-         bezier(
-           startpoint.x, startpoint.y,
-           bc1.x, bc1.y,
-           bc2.x, bc2.y, 
-           endpoint2.x, endpoint2.y
-         );
-         if (showBodyLines == true){
-          stroke(255, 102, 0);
-          strokeWeight(0.5);
-          line(startpoint.x, startpoint.y, bc1.x, bc1.y);
-          line(endpoint2.x, endpoint2.y, bc2.x, bc2.y);
-         }
-       popMatrix();
-
+    
+      //noStroke();
       strokeWeight(0.2);  
       stroke(220, 220, 0);
       fill(bodyColor);
       ellipse(0, 0, bodySize*2, bodySize);
-      
     } else {
       strokeWeight(bodySize/5);
       stroke(0, 0, 0);

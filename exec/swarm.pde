@@ -34,7 +34,9 @@ void setupSwarm() {
       random((width/2) -25, 
       (width/2) +25), 
       random((height/2) -25, 
-      height/2 +25), tadpoles
+      height/2 +25), 
+      tadpoles, 
+      i
     );
     swarm.addTadpole(tadpole);
   }

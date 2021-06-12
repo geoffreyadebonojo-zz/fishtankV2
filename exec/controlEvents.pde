@@ -25,10 +25,25 @@ void keyPressed(){
     //frameRate(20);
     zoom += 0.1;
   }
+  if (keyCode == 66) { //b key
+    showBodyLines = !showBodyLines;
+  }
+  if (keyCode == 76) { //l key
+    debugOne = !debugOne;
+    println("debugOne: ", debugOne);
+  }
+  if (keyCode == 75) { //k key
+    debugMany = !debugMany;
+    println("debugMany: ", debugMany);
+  }
   
-  println(cameraX, cameraY, zoom);
+  if (keyCode == 81){
+    println(cameraX, cameraY, zoom);
+  }
+  
+
 }
 
-void mousePressed() {
-  swarm.addTadpole(new Tadpole(mouseX,mouseY,tadpoles));
-}
+//void mousePressed() {
+//  swarm.addTadpole(new Tadpole(mouseX,mouseY,tadpoles));
+//}

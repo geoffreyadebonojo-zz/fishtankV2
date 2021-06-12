@@ -1,20 +1,31 @@
+boolean debugOne = false;
+boolean debugMany = false;
+boolean showBodyLines = false;
+boolean spriteMode = false;
+
 // initial settings
-int initialTadpoles = 30;
-int initialFoods =    100;
+int initialTadpoles = 1;
+int initialFoods =    50;
 int fps =             30;
 // forces
-PVector gravity =     new PVector (0, 0.6);
-// camera view
-//float cameraX = 210;
-//float cameraY = 200;
-//float zoom = 0.5;
-float cameraX = 0;
-float cameraY = 0;
-float zoom = 1;
+PVector gravity = new PVector(0, 0.6);
+
 // entities
 Tadpole[] tadpoles =  new Tadpole[initialTadpoles];
 Food[] foods =        new Food[initialFoods];
 Swarm swarm;
+
+
+ //if(spriteMode) {
+ //float cameraX = -120.0;
+ //float cameraY = -140.0;
+ //float zoom = 4.0;
+ //} 
+ //else {
+  float cameraX = 0;
+  float cameraY = 0;
+  float zoom = 1;
+ //}
 
 void makeFood(){
   for (int i =0; i<foods.length; i++){
@@ -38,9 +49,10 @@ void makeFood(){
   }
 }
 
+
 void setup() {
   // window size
-  size(800, 500);
+  size(400, 400);
   setupFoods();
   setupSwarm();
 }
@@ -52,6 +64,7 @@ void draw() {
     scale(zoom);
     translate(cameraX, cameraY);
     fill(150);
+    noStroke();
     rect(0, 0, width, height);
     makeFood();
     swarm.run();

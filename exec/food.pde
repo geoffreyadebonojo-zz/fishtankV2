@@ -7,7 +7,7 @@ class Food {
   float mass;
   float bodySize;
   float spoilTimer;
-  boolean beingChased;
+  int beingChasedBy;
   
   Food(float x, float y, float imass) {
     position = new PVector (x, y);
@@ -18,7 +18,7 @@ class Food {
     initMaxSpeed = bodySize-1; 
     maxSpeed = initMaxSpeed;
     spoilTimer = mass*2;
-    beingChased = false;
+    beingChasedBy = -1;
   }
 
   void display() {
@@ -27,6 +27,7 @@ class Food {
     //textSize(spoilTimer*2 +5);
     //text(spoilTimer,position.x,position.y);
     ellipse(position.x, position.y, bodySize, bodySize);
+    //println(beingChasedBy);
   }
 
   void update() {

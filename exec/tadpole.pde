@@ -1,5 +1,3 @@
-boolean debugMode = true;
-
 /*-=-=-=-=-=-=-=-=-=-=-=- CLASS DEFINITION -=-=-=-=-=-=-=-=-=-=-=-*/
 class Tadpole {
 
@@ -7,11 +5,7 @@ class Tadpole {
   PVector velocity;
   PVector acceleration;
   PVector bodyCenter;
-  float x;
-  float y;
-  float a;
-  float b;
-  float s;
+  float x, y, a, b, c, d, e, s;
   float mass;
   float bodySize;   
   float angle;
@@ -28,12 +22,17 @@ class Tadpole {
   float tailBodyRatio;
   float tailLength;
   float absoluteVelocity;
+  float absoluteAcceleration;
   float growthFactorSize;
   float growthFactorMaxSpeed;
   float sepMult;
   float aliMult;
   float cohMult;
   float colMult;
+  float maxTargetSize;
+  
+  int id;
+  int lifeCycleStage = 0;
   int foodCount;
   int gender;
   int neighbordist;
@@ -44,8 +43,9 @@ class Tadpole {
   Tadpole[] others; //class of others
 
   /*-=-=-=-=-=-=-=-=-=-=-=- CONSTRUCTOR -=-=-=-=-=-=-=-=-=-=-=-*/
-  Tadpole (float x, float y, Tadpole[] oin) {
+  Tadpole (float x, float y, Tadpole[] oin, int i) {
 
+    id = i;
     // Movements
     position= new PVector (x, y);
     velocity= new PVector (5*cos(angleInit), 5*sin(angleInit));
@@ -56,6 +56,7 @@ class Tadpole {
 
     // counters
     foodCount= 0;
+    //foodCount= 0;
     hunger= 0;
 
     // Genome
@@ -63,44 +64,39 @@ class Tadpole {
     //longCloseRatio= 2;
     desiredSep= 200;
     linger= 2;
-    tailBodyRatio= 0.75;
-    growthFactorSize = 0.1;
+    tailBodyRatio= 1;
+    growthFactorSize = 0.01;
     growthFactorMaxSpeed = 0.01;
     //make into array;
     metamorphosis[0] = 0;
-    metamorphosis[1] = 20;
+    metamorphosis[1] = 10;
     metamorphosis[2] = 50;
     gender = round(random(0, 2));
     neighbordist = 50;
-    
-    sepMult = 1.0; // 10 is kinda like gas molecules
-    aliMult = 1.0;   // 10 is like a herd of sheep
-    // how close they WANT to be
-    cohMult = 0.3; // 10 they pull together, almost overlapping;
-    // how forcefully they repel
-    colMult = 1.0;  // 10, they bounce so violently the inner core is stuck
+    //maxTargetSize = bodySize * 2;
+    maxTargetSize = 5;
 
     if (gender == 0) {
       // red
-      bodyColor = color(220, 50, 50);
+      bodyColor = color(180, 50, 50);
       maxHunger= 2;
       aliMult = 0.05;
-      sepMult = 0.8;
+      sepMult = 1.2;
       colMult = 2.0; 
       maxSteer= 0.1;
-      maxSpeed= 5;
+      maxSpeed= 3.5;
       huntOneRange= 100;
       huntManyRange= 120;
 
     } else if (gender == 1) {
-      // greem
-      bodyColor = color(50, 220, 50);
+      // green
+      bodyColor = color(50, 180, 50);
       maxHunger= 4;
       aliMult = 1.0;
-      sepMult = 0.5;
+      sepMult = 0.75;
       colMult = 1.0; 
       maxSteer= 0.08;
-      maxSpeed= 3;
+      maxSpeed= 3.3;
       huntOneRange= 80;
       huntManyRange= 160;
 
@@ -109,28 +105,39 @@ class Tadpole {
       bodyColor = color(50, 50, 220);
       maxHunger= 8;
       aliMult = 5.0;
-      sepMult = 0.2;
+      sepMult = 0.6;
       colMult = 0.5;
       maxSteer= 0.06;
-      maxSpeed= 2;
+      maxSpeed= 2.8;
       huntOneRange= 50;
       huntManyRange= 200;
 
     }
     
-    // defaults
-     //maxSteer= 0.05;
-     //maxSpeed= 3;
-     //huntOneRange= 100;
-     //huntManyRange= 150;
-     //maxHunger = 10;
+     // defaults
+     maxSteer= 0.1;
+     //maxSpeed = 2;
+     huntOneRange= 100;
+     huntManyRange= 150;
+     //maxHunger = 10000000;
+
+     //sepMult = 0.8; // 10 is kinda like gas molecules
+     aliMult = 0.04;   // 10 is like a herd of sheep
+     // how close they WANT to be
+     cohMult = 0.03; // 10 they pull together, almost overlapping;
+     // how forcefully they repel
+     colMult = 1.0;  // 10, they bounce so violently the inner core is stuck
 
     // functional
-
     bodySize= mass*5;
     bodyCenter = new PVector(-bodySize/2, 0);
-    jitterSpeed= 0.1;
+    // jitterSpeed= 0.1;
     tailLength = bodySize * -tailBodyRatio;
+    
+    if (spriteMode == true){
+      maxHunger = 10000000;
+      //maxSpeed= 0;
+    }
 
   }
 
@@ -139,26 +146,8 @@ class Tadpole {
     pushMatrix();
       translate(position.x, position.y);
       rotate(angle);
-      displayTail();
-      displayBody();
+      lifeStage();
     popMatrix();
-    a += 1;
-  }
-  
-  void displayTail() {
-    b = sin(a);
-    float absoluteVelocity = abs(velocity.x + velocity.y);
-    strokeWeight(bodySize/5);
-    stroke(0, 0, 0);
-    line(bodyCenter.x, bodyCenter.y, tailLength - absoluteVelocity, b * absoluteVelocity);
-  }
-
-  void displayBody() {
-    //strokeWeight(1);
-    noStroke();
-    //stroke(220, 220, 0);
-    fill(bodyColor);
-    ellipse(0, 0, bodySize, bodySize);
   }
 
   void run(ArrayList<Tadpole> tadpoles) {
@@ -167,7 +156,9 @@ class Tadpole {
       update();
       checkEdgesAlive();
       display(); 
-      wander();
+      if (spriteMode == false){
+        wander();
+      }
       huntMany();
       huntOne();
       eat();
@@ -175,9 +166,29 @@ class Tadpole {
   }  
   
   void update() {
-    velocity.add(acceleration);
-    velocity.limit(maxSpeed);
-    position.add(velocity);
+    if (lifeCycleStage == 2){
+     
+    } else {
+      absoluteAcceleration = abs(acceleration.x + acceleration.y);
+
+      velocity.add(acceleration);
+      absoluteVelocity = abs(velocity.x + velocity.y);
+
+      velocity.limit(maxSpeed);
+
+      position.add(velocity);
+
+      a += absoluteVelocity/2;
+
+      if (abs(velocity.x) > 0.0) {
+        velocity.x *= 0.99;
+      } 
+
+      if (abs(velocity.y) > 0.0) {
+        velocity.y *= 0.99;
+      } 
+    }
+
   }
 
   void applyForce(PVector force) {
@@ -197,7 +208,7 @@ class Tadpole {
   void wander() {
     //s -- range from 0.1 to about 1, using random makes the paths more exploratory seeing
     acceleration= PVector.random2D();
-    acceleration.mult(0.25);
+    acceleration.mult(jitterSpeed);
   }
 
   void huntOne() {
@@ -208,17 +219,16 @@ class Tadpole {
     for (int i=0; i<foods.length; i++) {
       
       // if going after same target, pick new one
-      
       target = new PVector(foods[i].position.x, foods[i].position.y);
       dir = PVector.sub(target, position);
       dir.normalize();
 
-      if (canTargetFood(foods[i]) && targetAcquired==false && foods[i].beingChased==false) { 
+      if (canTargetFood(foods[i]) && targetAcquired==false/*&& foods[i].beingChased==false*/) { 
         targetAcquired = true;
-        //foods[i].beingChased = true;
+        foods[i].beingChasedBy = id;
         acceleration = dir;
 
-        if (debugMode == true) {
+        if (debugOne == true) {
           strokeWeight(1);
           stroke(bodyColor);
           line(position.x, position.y, foods[i].position.x, foods[i].position.y);
@@ -240,21 +250,21 @@ class Tadpole {
       if (canTargetFood(foods[i])) {
         acceleration = dir;
 
-        // if (debugMode == true) {
-        //   strokeWeight(1);
-        //   stroke(0, 0, 0);
-        //   line(position.x, position.y, foods[i].position.x, foods[i].position.y);
-        // }
+         if (debugMany == true) {
+           strokeWeight(0.2);
+           stroke(0, 0, 0);
+           line(position.x, position.y, foods[i].position.x, foods[i].position.y);
+         }
       }
     }
   }
 
   boolean canTargetFood(Food food){
-    return ( (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && food.position.y > 0);
+    return ( (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && food.position.y > 0 );
   }
   
   boolean foodIsSmallEnough(Food food){
-    return food.bodySize < bodySize * 2;
+    return food.bodySize < maxTargetSize;
   }
   
   boolean foodIsWithinRange(String rangeType, Food food){
@@ -294,20 +304,135 @@ class Tadpole {
   //void metabolize(){
   //}
 
-  void mature() {
-    if (between(foodCount, metamorphosis[0], metamorphosis[1])) {
- 
+  void lifeStage() {
+    b = sin(a);
+    c = cos(a/10);
+    d = sin(a/10);
+
+    if (foodCount > metamorphosis[2]) {
+      lifeCycleStage = 2;
+      stageThree();
+
     } else if (between(foodCount, metamorphosis[1], metamorphosis[2])) {
- 
-    } else {
- 
+      lifeCycleStage = 1;
+      stageTwo();
+      
+    } else if (between(foodCount, metamorphosis[0], metamorphosis[1])) { //
+      lifeCycleStage = 0;
+      stageOne();
     }
+  }
+
+  void stageThree() {
+    jitterSpeed = 0.0;
+    acceleration.x = 0;
+    acceleration.y = 0;
+    velocity.x = 0;
+    velocity.y = 0;
+ 
+    strokeWeight(bodySize/10);
+    stroke(0, 0, 0);
+
+    pushMatrix();
+      rotate(-angle);
+      line(0, 0, -10, 7);
+      line(0, 0, 10, 7);
+    popMatrix();
+    fill(bodyColor);
+    pushMatrix();
+      rotate(radians(15));
+      arc(0, 0, bodySize*3, bodySize*3, 0, radians(330), PIE);
+    popMatrix();
+    fill(100);
+    ellipse(0, 0, 1, 1);
+
+
+  }
+
+  void stageTwo() {
+    jitterSpeed = 0.08;
+    noFill();  
+    PVector startpoint = new PVector(round(bodyCenter.x -3), round(bodyCenter.y));
+    float v = 3 + absoluteVelocity;
+    PVector endpoint1 =   new PVector(-v * 3, -8*d);
+    PVector endpoint2 =   new PVector(-v * 3, 8*d );
+
+    // top curve    
+    float m = 2;
+    float n = 10;
+    
+    float flagAngle = PI/ 5;
+    
+    PVector tc1 = new PVector(-12, m *d);
+    PVector tc2 = new PVector(-12, -n *c);
+    strokeWeight(0.3);
+    stroke(0, 0, 0);
+    pushMatrix();
+      translate(0, 2);
+      rotate(flagAngle);
+      bezier(
+        startpoint.x, startpoint.y,
+        tc1.x, tc1.y,
+        tc2.x, tc2.y, 
+        endpoint1.x, endpoint1.y
+      );
+      if (showBodyLines == true){
+        stroke(102, 255, 0);
+        strokeWeight(0.5);
+        line(startpoint.x, startpoint.y, tc1.x, tc1.y);
+        line(endpoint1.x, endpoint1.y, tc2.x, tc2.y);
+      }
+    popMatrix();
+
+    // bottom curve
+    PVector bc1 = new PVector(tc1.x, -m *d);
+    PVector bc2 = new PVector(tc2.x, n *c);
+      pushMatrix();
+        translate(0, -2);
+        rotate(-flagAngle);
+        bezier(
+          startpoint.x, startpoint.y,
+          bc1.x, bc1.y,
+          bc2.x, bc2.y, 
+          endpoint2.x, endpoint2.y
+        );
+        if (showBodyLines == true){
+          stroke(255, 102, 0);
+          strokeWeight(0.5);
+          line(startpoint.x, startpoint.y, bc1.x, bc1.y);
+          line(endpoint2.x, endpoint2.y, bc2.x, bc2.y);
+        }
+      popMatrix();
+
+    strokeWeight(0.2);  
+    stroke(220, 220, 0);
+    fill(bodyColor);
+    ellipse(0, 0, bodySize*2, bodySize);
+    
+  }
+  
+  void stageOne() {
+    jitterSpeed = 1.5;
+    noStroke();
+    fill(bodyColor);
+    ellipse(0, 0, bodySize, bodySize);
+    strokeWeight(bodySize/10);
+    stroke(0, 0, 0);
+    pushMatrix();
+      translate(0, 0);
+      rotate( ( (b + (PI/4)) /5 ) *absoluteVelocity );
+      line(
+        bodyCenter.x+3, 
+        bodyCenter.y, 
+        (tailLength - absoluteVelocity)/2, 
+        absoluteVelocity
+      );
+    popMatrix(); 
   }
   
   void grow() {
     bodySize += growthFactorSize;
     maxSpeed += growthFactorMaxSpeed;
-    mature();
   }
 
   void eat() { 
@@ -317,8 +442,8 @@ class Tadpole {
       if (foodIsWithinRange("eat", foods[i])) {
         // handle elsewhere, some other way //
         //////////////////////////////////////
-        foods[i].position.y = random(height); 
-        foods[i].position.x = random(width-20) + 10;
+        foods[i].position.y = random(height * 2); 
+        foods[i].position.x = random(width * 2-20) + 10;
         //////////////////////////////////////
         // maturity?
         foodCount++;
@@ -333,20 +458,21 @@ class Tadpole {
   // replace with force appliers, ideally
 
   void checkEdgesAlive() {
-    if (position.x > width) {
+
+    if (position.x < 0) {
+      position.x= width * containerScale-1;
+    } else if (position.x > width * containerScale) {
       position.x= 1;
-    } else if (position.x < 0) {
-      position.x= width-1;
     }
+
     if (position.y < 0) {
       position.y=1;
       velocity.y*=-0.8; 
-      // velocity.x*=1.1;
-    } else if (position.y > height) {
-      position.y=height-1; 
+    } else if (position.y > height * containerScale) {
+      position.y=height * containerScale-1; 
       velocity.y*=-0.8;
-      // velocity.x*=1.1;
     }
+
   }
 
   /*-=-=-=-=-=-=-=-=-=-=-=- SWARM METHODS -=-=-=-=-=-=-=-=-=-=-=-*/
@@ -468,6 +594,10 @@ class Tadpole {
   /*-=-=-=-=-=-=-=-=-=-=-=- HELPER METHODS -=-=-=-=-=-=-=-=-=-=-=*/
   boolean between(int v, int start, int end) {
     return (v >= start && v < end);
+  }
+
+  void vectorLine(PVector start, PVector end) {
+    line(start.x, start.y, end.x, end.y);
   }
 
 }

@@ -3,7 +3,7 @@ filename = Dir.pwd.split("/").last
 doc << "/*#{Time.now.to_i}*/\n"
 
 Dir.entries("exec").each do |file|
-  unless file == "." || file == ".."
+  unless file == "." || file == ".." || file.split("")[0] == "."
     File.read("./exec/#{file}").split("\n").each do |line|
       doc << line
     end

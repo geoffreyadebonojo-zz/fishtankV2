@@ -1,4 +1,4 @@
-/*1623371713*/
+/*1623466539*/
 
 class Food {
   PVector position;
@@ -9,16 +9,18 @@ class Food {
   float mass;
   float bodySize;
   float spoilTimer;
+  int beingChasedBy;
   
   Food(float x, float y, float imass) {
     position = new PVector (x, y);
     velocity = new PVector (0, 0);
     acceleration = new PVector(0, 0);
     mass= imass;
-    bodySize= 1+ mass;
+    bodySize= 1+ mass/3;
     initMaxSpeed = bodySize-1; 
     maxSpeed = initMaxSpeed;
     spoilTimer = mass*2;
+    beingChasedBy = -1;
   }
 
   void display() {
@@ -27,6 +29,7 @@ class Food {
     //textSize(spoilTimer*2 +5);
     //text(spoilTimer,position.x,position.y);
     ellipse(position.x, position.y, bodySize, bodySize);
+    //println(beingChasedBy);
   }
 
   void update() {
@@ -56,7 +59,7 @@ class Food {
 
   void respawn() {
     if (position.x < 0){
-      position.y = width;
+      position.x = width;
     } else if (position.x > width){
       position.x= 0;
     }
@@ -69,47 +72,58 @@ class Food {
 
 void setupFoods(){
   for (int i = 0; i<foods.length; i++) {
-    foods[i] = new Food(width, height, random(1,5));
+    foods[i] = new Food(width/2, 1, random(1,5));
   }
 }
-float cameraX = 0;
-float cameraY = 0;
-float zoom = 1;
-
 void keyPressed(){
   if (key == CODED) {
     if (keyCode == DOWN) {
       //noLoop();
-      cameraY += 10;
+      cameraY -= 20;
     }
     if (keyCode == UP) {
       //loop();
-      cameraY -= 10;
+      cameraY += 20;
     }
     if (keyCode == LEFT) {
       //frameRate(10);
-      cameraX -= 10;
+      cameraX += 20;
     }
     if (keyCode == RIGHT) {
       //frameRate(20);
-      cameraX += 10;
+      cameraX -= 20;
     }
   }
   if (keyCode == 44) {
     //frameRate(10);
-    zoom -= 0.1;
-    println(zoom);
+    zoom -= 0.5;
   }
   if (keyCode == 46) {
     //frameRate(20);
-    zoom += 0.1;
-    println(zoom);
+    zoom += 0.5;
   }
+  if (keyCode == 66) { //b key
+    showBodyLines = !showBodyLines;
+  }
+  if (keyCode == 76) { //l key
+    debugOne = !debugOne;
+    println("debugOne: ", debugOne);
+  }
+  if (keyCode == 75) { //k key
+    debugMany = !debugMany;
+    println("debugMany: ", debugMany);
+  }
+  
+  if (keyCode == 81){
+    println(cameraX, cameraY, zoom);
+  }
+  
+
 }
 
-void mousePressed() {
-  swarm.addTadpole(new Tadpole(mouseX,mouseY,tadpoles));
-}
+//void mousePressed() {
+//  swarm.addTadpole(new Tadpole(mouseX,mouseY,tadpoles));
+//}
 class Swarm {
   ArrayList<Tadpole>tadpoles;
 
@@ -146,18 +160,41 @@ void setupSwarm() {
       random((width/2) -25, 
       (width/2) +25), 
       random((height/2) -25, 
-      height/2 +25), tadpoles
+      height/2 +25), 
+      tadpoles, 
+      i
     );
     swarm.addTadpole(tadpole);
   }
 }
-int initialTadpoles = 1;
-int initialFoods =    10;
-int fps =             30;
-PVector gravity =     new PVector (0, 0.6);
+boolean debugOne = false;
+boolean debugMany = false;
+boolean showBodyLines = false;
+boolean spriteMode = false;
+
+// initial settings
+int initialTadpoles = 30;
+int initialFoods =    30;
+int fps =             180;
+// forces
+PVector gravity = new PVector(0, 0.6);
+
+// entities
 Tadpole[] tadpoles =  new Tadpole[initialTadpoles];
 Food[] foods =        new Food[initialFoods];
 Swarm swarm;
+
+
+ //if(spriteMode) {
+ //float cameraX = -120.0;
+ //float cameraY = -140.0;
+ //float zoom = 4.0;
+ //} 
+ //else {
+  float cameraX = 0;
+  float cameraY = 0;
+  float zoom = 1;
+ //}
 
 void makeFood(){
   for (int i =0; i<foods.length; i++){
@@ -174,31 +211,37 @@ void makeFood(){
     if (foods[i].spoilTimer<=0) {
       foods[i].spoilTimer=20;
       foods[i].position.x=random(width);
-      foods[i].position.y=random(height);
+      //foods[i].position.y=random(height);
+      //foods[i].position.x= width/2;
+      foods[i].position.y= 0;
     }
   }
 }
 
+
 void setup() {
-  size(400, 400);
+  // window size
+  size(800, 800);
   setupFoods();
   setupSwarm();
 }
-  
+
+int c = 0;
 void draw() {
+  c++;
   frameRate(fps);
+  println(c/30, tadpoles.length);
   background(255, 20);
   pushMatrix();
     scale(zoom);
     translate(cameraX, cameraY);
     fill(150);
-    rect(0, 0, 400, 400);
+    noStroke();
+    rect(0, 0, width, height);
     makeFood();
     swarm.run();
   popMatrix();
 }
-boolean debugMode = false;
-
 /*-=-=-=-=-=-=-=-=-=-=-=- CLASS DEFINITION -=-=-=-=-=-=-=-=-=-=-=-*/
 class Tadpole {
 
@@ -206,11 +249,7 @@ class Tadpole {
   PVector velocity;
   PVector acceleration;
   PVector bodyCenter;
-  float x;
-  float y;
-  float a;
-  float b;
-  float s;
+  float x, y, a, b, c, d, e, s;
   float mass;
   float bodySize;   
   float angle;
@@ -229,15 +268,26 @@ class Tadpole {
   float absoluteVelocity;
   float growthFactorSize;
   float growthFactorMaxSpeed;
+  float sepMult;
+  float aliMult;
+  float cohMult;
+  float colMult;
+  float maxTargetSize;
+  
+  int id;
   int foodCount;
+  int gender;
+  int neighbordist;
+  color bodyColor;
   int longCloseRatio;
-  color gender;
   boolean targetAcquired;
+  int[] metamorphosis = new int[3];
   Tadpole[] others; //class of others
 
   /*-=-=-=-=-=-=-=-=-=-=-=- CONSTRUCTOR -=-=-=-=-=-=-=-=-=-=-=-*/
-  Tadpole (float x, float y, Tadpole[] oin) {
+  Tadpole (float x, float y, Tadpole[] oin, int i) {
 
+    id = i;
     // Movements
     position= new PVector (x, y);
     velocity= new PVector (5*cos(angleInit), 5*sin(angleInit));
@@ -247,28 +297,89 @@ class Tadpole {
     s = random(0.1); //this can be anywhere from 0 to 10; the lower the better, surivability wise; could pop both out into explore method
 
     // counters
+    //foodCount= 21;
     foodCount= 0;
     hunger= 0;
 
     // Genome
     mass= 1;
-    maxSpeed= 3;
-    longCloseRatio= 2;
-    huntOneRange= 100;
-    huntManyRange= huntOneRange * longCloseRatio;
-    desiredSep= 80;
-    maxSteer= 0.05;
-    maxHunger= 20;
+    //longCloseRatio= 2;
+    desiredSep= 200;
     linger= 2;
-    tailBodyRatio= 0.75;
-    growthFactorSize = 0.1;
+    tailBodyRatio= 1;
+    growthFactorSize = 0.01;
     growthFactorMaxSpeed = 0.01;
+    //make into array;
+    metamorphosis[0] = 0;
+    metamorphosis[1] = 10;
+    metamorphosis[2] = 50;
+    gender = round(random(0, 2));
+    neighbordist = 50;
+    //maxTargetSize = bodySize * 2;
+    maxTargetSize = 5;
 
-    // Functional
+    if (gender == 0) {
+      // red
+      bodyColor = color(220, 50, 50);
+      maxHunger= 2;
+      aliMult = 0.05;
+      sepMult = 1.2;
+      colMult = 2.0; 
+      maxSteer= 0.1;
+      maxSpeed= 3.5;
+      huntOneRange= 100;
+      huntManyRange= 120;
+
+    } else if (gender == 1) {
+      // greem
+      bodyColor = color(50, 220, 50);
+      maxHunger= 4;
+      aliMult = 1.0;
+      sepMult = 0.75;
+      colMult = 1.0; 
+      maxSteer= 0.08;
+      maxSpeed= 3.3;
+      huntOneRange= 80;
+      huntManyRange= 160;
+
+    } else {
+      // blue
+      bodyColor = color(50, 50, 220);
+      maxHunger= 8;
+      aliMult = 5.0;
+      sepMult = 0.6;
+      colMult = 0.5;
+      maxSteer= 0.06;
+      maxSpeed= 2.8;
+      huntOneRange= 50;
+      huntManyRange= 200;
+
+    }
+    
+     // defaults
+     maxSteer= 0.1;
+     //maxSpeed = 2;
+     huntOneRange= 100;
+     huntManyRange= 150;
+     //maxHunger = 10000000;
+
+     //sepMult = 0.8; // 10 is kinda like gas molecules
+     aliMult = 0.04;   // 10 is like a herd of sheep
+     // how close they WANT to be
+     cohMult = 0.03; // 10 they pull together, almost overlapping;
+     // how forcefully they repel
+     colMult = 1.0;  // 10, they bounce so violently the inner core is stuck
+
+    // functional
     bodySize= mass*5;
     bodyCenter = new PVector(-bodySize/2, 0);
     jitterSpeed= 0.1;
     tailLength = bodySize * -tailBodyRatio;
+    
+    if (spriteMode == true){
+      maxHunger = 10000000;
+      maxSpeed= 0;
+    }
 
   }
 
@@ -277,29 +388,10 @@ class Tadpole {
     pushMatrix();
       translate(position.x, position.y);
       rotate(angle);
-      displayTail();
-      displayBody();
+      lifeStage();
     popMatrix();
-    a += 1;
-  }
-  
-  void displayTail() {
-    b = sin(a);
-    float absoluteVelocity = abs(velocity.x + velocity.y);
-    
-    strokeWeight(bodySize/5);
-    stroke(0, 0, 0);
-    line(
-      bodyCenter.x, bodyCenter.y, 
-      tailLength - absoluteVelocity, b * absoluteVelocity
-    );
-  }
-
-  void displayBody() {
-    strokeWeight(1);
-    stroke(220, 220, 0);
-    fill(0, 0, 240);
-    ellipse(0, 0, bodySize, bodySize);
+    // a += 1;
+    a += abs(velocity.x + velocity.y)/2;
   }
 
   void run(ArrayList<Tadpole> tadpoles) {
@@ -308,7 +400,9 @@ class Tadpole {
       update();
       checkEdgesAlive();
       display(); 
-      wander();
+      if (spriteMode == false){
+        wander();
+      }
       huntMany();
       huntOne();
       eat();
@@ -347,14 +441,22 @@ class Tadpole {
     PVector target;
 
     for (int i=0; i<foods.length; i++) {
-      target = new PVector (foods[i].position.x, foods[i].position.y);
+      
+      // if going after same target, pick new one
+      target = new PVector(foods[i].position.x, foods[i].position.y);
       dir = PVector.sub(target, position);
       dir.normalize();
 
-      if ( canTargetFood(foods[i]) && targetAcquired==false) { 
+      if (canTargetFood(foods[i]) && targetAcquired==false/*&& foods[i].beingChased==false*/) { 
         targetAcquired = true;
+        foods[i].beingChasedBy = id;
         acceleration = dir;
-        drawLines(foods[i]);
+
+        if (debugOne == true) {
+          strokeWeight(1);
+          stroke(bodyColor);
+          line(position.x, position.y, foods[i].position.x, foods[i].position.y);
+        }
       }
     }
   }
@@ -371,20 +473,22 @@ class Tadpole {
 
       if (canTargetFood(foods[i])) {
         acceleration = dir;
-        drawLines(foods[i]);
+
+         if (debugMany == true) {
+           strokeWeight(1);
+           stroke(0, 0, 0);
+           line(position.x, position.y, foods[i].position.x, foods[i].position.y);
+         }
       }
     }
   }
 
   boolean canTargetFood(Food food){
-    return (
-      (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && 
-      food.position.y > 0
-    );
+    return ( (foodIsSmallEnough(food) && foodIsWithinRange("long", food)) && food.position.y > 0 );
   }
   
   boolean foodIsSmallEnough(Food food){
-    return food.bodySize < bodySize * 2;
+    return food.bodySize < maxTargetSize;
   }
   
   boolean foodIsWithinRange(String rangeType, Food food){
@@ -423,6 +527,96 @@ class Tadpole {
 
   //void metabolize(){
   //}
+
+  void lifeStage() {
+    b = sin(a);
+    c = cos(a/10);
+    d = sin(a/10);
+
+    float absoluteVelocity = abs(velocity.x + velocity.y);
+
+    if (foodCount > metamorphosis[1]) {
+  
+      noFill();  
+      PVector startpoint = new PVector(round(bodyCenter.x -3), round(bodyCenter.y));
+      float v = 3 + absoluteVelocity;
+      PVector endpoint1 =   new PVector(-v * 3, -8*d);
+      PVector endpoint2 =   new PVector(-v * 3, 8*d );
+
+      // top curve    
+      float m = 2;
+      float n = 10;
+      
+      float flagAngle = PI/ 5;
+      
+      PVector tc1 = new PVector(-12, m *d);
+      PVector tc2 = new PVector(-12, -n *c);
+      strokeWeight(0.3);
+      stroke(0, 0, 0);
+      pushMatrix();
+         translate(0, 2);
+         rotate(flagAngle);
+        bezier(
+          startpoint.x, startpoint.y,
+          tc1.x, tc1.y,
+          tc2.x, tc2.y, 
+          endpoint1.x, endpoint1.y
+        );
+       if (showBodyLines == true){
+         stroke(102, 255, 0);
+         strokeWeight(0.5);
+         line(startpoint.x, startpoint.y, tc1.x, tc1.y);
+         line(endpoint1.x, endpoint1.y, tc2.x, tc2.y);
+       }
+       
+      popMatrix();
+
+      // bottom curve
+      PVector bc1 = new PVector(tc1.x, -m *d);
+      PVector bc2 = new PVector(tc2.x, n *c);
+       pushMatrix();
+         translate(0, -2);
+         rotate(-flagAngle);
+         bezier(
+           startpoint.x, startpoint.y,
+           bc1.x, bc1.y,
+           bc2.x, bc2.y, 
+           endpoint2.x, endpoint2.y
+         );
+         if (showBodyLines == true){
+          stroke(255, 102, 0);
+          strokeWeight(0.5);
+          line(startpoint.x, startpoint.y, bc1.x, bc1.y);
+          line(endpoint2.x, endpoint2.y, bc2.x, bc2.y);
+         }
+       popMatrix();
+
+      strokeWeight(0.2);  
+      stroke(220, 220, 0);
+      fill(bodyColor);
+      ellipse(0, 0, bodySize*2, bodySize);
+      
+    } else {
+      noStroke();
+      //stroke(220, 220, 0);
+      fill(bodyColor);
+      ellipse(0, 0, bodySize, bodySize);
+      strokeWeight(bodySize/10);
+      stroke(0, 0, 0);
+      pushMatrix();
+        translate(0, 0);
+        rotate( ( (b + (PI/4)) /5 ) *absoluteVelocity );
+        line(
+          bodyCenter.x+3, 
+          bodyCenter.y, 
+          (tailLength - absoluteVelocity)/2, 
+          absoluteVelocity
+        );
+      popMatrix();
+       //strokeWeight(1);
+
+    }
+  }
   
   void grow() {
     bodySize += growthFactorSize;
@@ -434,10 +628,10 @@ class Tadpole {
 
     for (int i=0; i<foods.length; i++) {
       if (foodIsWithinRange("eat", foods[i])) {
-        //////////////////////////////////////
         // handle elsewhere, some other way //
+        //////////////////////////////////////
         foods[i].position.y = random(height); 
-        foods[i].position.x = random(width);
+        foods[i].position.x = random(width-20) + 10;
         //////////////////////////////////////
         // maturity?
         foodCount++;
@@ -452,19 +646,17 @@ class Tadpole {
   // replace with force appliers, ideally
 
   void checkEdgesAlive() {
-    if (position.x>width+5) {
-      position.x=-5;
+    if (position.x > width) {
+      position.x= 1;
+    } else if (position.x < 0) {
+      position.x= width-1;
     }
-    if (position.x<-5) {
-      position.x=width+5;
-    }
-    if (position.y<0) {
-      position.y=0 ;
+    if (position.y < 0) {
+      position.y=1;
       velocity.y*=-0.8; 
       // velocity.x*=1.1;
-    }
-    if (position.y>height) {
-      position.y=height; 
+    } else if (position.y > height) {
+      position.y=height-1; 
       velocity.y*=-0.8;
       // velocity.x*=1.1;
     }
@@ -525,7 +717,7 @@ class Tadpole {
   }
 
   PVector align (ArrayList<Tadpole>tadpoles) {
-    float neighbordist = 50;
+    // float neighbordist = 50;
     PVector sum = new PVector(0, 0);
     int count = 0;
     for (Tadpole other : tadpoles) {
@@ -549,7 +741,7 @@ class Tadpole {
   }     
 
   PVector cohesion(ArrayList<Tadpole> tadpoles) {
-    float neighbordist = 50;
+    // float neighbordist = 50;
     PVector sum = new PVector(0, 0); 
     int count = 0;
 
@@ -575,10 +767,10 @@ class Tadpole {
     PVector coh = cohesion(tadpoles);
     PVector col = collide(tadpoles);
 
-    sep.mult(0.08);
-    ali.mult(0.04);
-    coh.mult(0.03);
-    col.mult(1);
+    sep.mult(sepMult);
+    ali.mult(aliMult);
+    coh.mult(cohMult);
+    col.mult(colMult);
 
     applyForce(sep);
     applyForce(ali);
@@ -586,14 +778,15 @@ class Tadpole {
     applyForce(col);
   }
 
-  /*-=-=-=-=-=-=-=-=-=-=-=- DEBUG METHODS -=-=-=-=-=-=-=-=-=-=-=-*/
-  void drawLines(Food food) {
-    if (debugMode == true) {
-      strokeWeight(1);
-      stroke(0, 0, 0, 100);
-      line(position.x, position.y, food.position.x, food.position.y);
-    }
+  /*-=-=-=-=-=-=-=-=-=-=-=- HELPER METHODS -=-=-=-=-=-=-=-=-=-=-=*/
+  boolean between(int v, int start, int end) {
+    return (v >= start && v < end);
   }
+
+  void vectorLine(PVector start, PVector end) {
+    line(start.x, start.y, end.x, end.y);
+  }
+
 }
 class Feeder {
   float x;

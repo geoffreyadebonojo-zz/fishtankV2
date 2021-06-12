@@ -52,7 +52,7 @@ void makeFood(){
 
 void setup() {
   // window size
-  size(400, 400);
+  size(800, 800);
   setupFoods();
   setupSwarm();
 }

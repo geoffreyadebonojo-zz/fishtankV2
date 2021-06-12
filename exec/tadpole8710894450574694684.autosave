@@ -147,7 +147,7 @@ class Tadpole {
       lifeStage();
     popMatrix();
     // a += 1;
-    a += abs(velocity.x + velocity.y)/2;
+    a += abs(acceleration.x + acceleration.y);
   }
 
   void run(ArrayList<Tadpole> tadpoles) {
@@ -361,7 +361,7 @@ class Tadpole {
       stroke(0, 0, 0);
       pushMatrix();
         translate(0, 0);
-        rotate( ( (b + (PI/4)) /5 ) *absoluteVelocity );
+        rotate(b/5);
         line(
           bodyCenter.x+3, 
           bodyCenter.y, 

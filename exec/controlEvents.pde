@@ -2,28 +2,28 @@ void keyPressed(){
   if (key == CODED) {
     if (keyCode == DOWN) {
       //noLoop();
-      cameraY += 10;
+      cameraY -= 20;
     }
     if (keyCode == UP) {
       //loop();
-      cameraY -= 10;
+      cameraY += 20;
     }
     if (keyCode == LEFT) {
       //frameRate(10);
-      cameraX -= 10;
+      cameraX += 20;
     }
     if (keyCode == RIGHT) {
       //frameRate(20);
-      cameraX += 10;
+      cameraX -= 20;
     }
   }
   if (keyCode == 44) {
     //frameRate(10);
-    zoom -= 0.1;
+    zoom -= 0.5;
   }
   if (keyCode == 46) {
     //frameRate(20);
-    zoom += 0.1;
+    zoom += 0.5;
   }
   if (keyCode == 66) { //b key
     showBodyLines = !showBodyLines;

@@ -146,8 +146,7 @@ class Tadpole {
       rotate(angle);
       lifeStage();
     popMatrix();
-    // a += 1;
-    a += abs(velocity.x + velocity.y)/2;
+    a += 1;
   }
 
   void run(ArrayList<Tadpole> tadpoles) {
@@ -285,6 +284,7 @@ class Tadpole {
   //}
 
   void lifeStage() {
+    a += absoluteVelocity; 
     b = sin(a);
     c = cos(a/10);
     d = sin(a/10);
@@ -361,7 +361,7 @@ class Tadpole {
       stroke(0, 0, 0);
       pushMatrix();
         translate(0, 0);
-        rotate( ( (b + (PI/4)) /5 ) *absoluteVelocity );
+        rotate(b);
         line(
           bodyCenter.x+3, 
           bodyCenter.y, 
